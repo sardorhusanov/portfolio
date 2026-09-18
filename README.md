@@ -2,7 +2,7 @@
 
 A personal portfolio and technical blog built with React, TypeScript, Vite, and FastAPI. Warm neutrals, quiet green accents, compact projects, and a readable writing archive. Includes light/dark/system themes and layouts from 320px upward.
 
-Part 2 extends the public website with a private, single-admin CMS: Tiptap writing, autosaved drafts, previews, publishing, image uploads, project/profile management, and Telegram announcement synchronization. The public design and Part 1 content remain intact.
+Extends the public website with a private, single-admin CMS: Tiptap writing, autosaved drafts, previews, publishing, image uploads, project/profile management, and Telegram announcement synchronization. The public design and Part 1 content remain intact.
 
 ## Architecture
 
