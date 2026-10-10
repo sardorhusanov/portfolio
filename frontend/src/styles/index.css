@@ -23,14 +23,14 @@
   color-scheme: light;
 }
 :root[data-theme="dark"] {
-  --bg: #171c19;
-  --surface: #1c221e;
-  --text: #e0e6dc;
-  --muted: #a0ada1;
-  --line: #333d34;
-  --accent: #a3c4a8;
-  --tint: #28362b;
-  --code: #222b24;
+  --bg: #0e0e0e;
+  --surface: #191919;
+  --text: #ededed;
+  --muted: #a6a6a6;
+  --line: #333333;
+  --accent: #e5e5e5;
+  --tint: #272727;
+  --code: #202020;
   color: var(--text);
   background: var(--bg);
   color-scheme: dark;
