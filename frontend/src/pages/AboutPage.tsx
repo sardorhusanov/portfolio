@@ -61,7 +61,11 @@ export default function AboutPage() {
           {Object.entries(p.skills).map(([group, skills]) => (
             <div className="skill-group" key={group}>
               <h3>{group}</h3>
-              <p>{skills.join(" · ")}</p>
+              <ul className="skill-list">
+                {skills.map((skill) => (
+                  <li key={skill}>{skill}</li>
+                ))}
+              </ul>
             </div>
           ))}
           <div className="elsewhere">

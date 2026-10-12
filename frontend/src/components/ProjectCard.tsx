@@ -1,4 +1,4 @@
-import { ArrowUpRight, Braces, Database, Layers } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import type { Project } from "../types";
 import { safeUrl } from "../lib/format";
 export function ProjectCard({
@@ -8,9 +8,35 @@ export function ProjectCard({
   project: Project;
   index?: number;
 }) {
-  const Icon = [Layers, Database, Braces][index % 3];
   return (
-    <article className="project-card">
+    <article
+      className={`project-card ${safeUrl(project.cover_image_url) ? "has-cover" : ""}`}
+    >
+      <div className="project-top">
+        <span className="project-index">
+          {String(index + 1).padStart(2, "0")}
+        </span>
+        <span className={`status status-${project.status}`}>
+          <i />
+          {project.status}
+        </span>
+      </div>
+      <div className="project-content">
+        <h3>{project.name}</h3>
+        <p>{project.short_description}</p>
+        <ul className="tech-stack">
+          {project.technologies.map((tech) => (
+            <li key={tech}>{tech}</li>
+          ))}
+        </ul>
+        {project.description &&
+          project.description !== project.short_description && (
+            <details className="project-details">
+              <summary>Technical details</summary>
+              <p>{project.description}</p>
+            </details>
+          )}
+      </div>
       {safeUrl(project.cover_image_url) && (
         <img
           className="project-cover"
@@ -21,18 +47,6 @@ export function ProjectCard({
           height="320"
         />
       )}
-      <div className="project-top">
-        <span className="project-icon">
-          <Icon size={21} strokeWidth={1.5} />
-        </span>
-        <span className={`status status-${project.status}`}>
-          <i />
-          {project.status}
-        </span>
-      </div>
-      <h3>{project.name}</h3>
-      <p>{project.short_description}</p>
-      <div className="tech-stack">{project.technologies.join(" · ")}</div>
       <div className="project-bottom">
         <div>
           {safeUrl(project.github_url) && (

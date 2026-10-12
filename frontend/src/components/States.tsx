@@ -38,16 +38,21 @@ export function EmptyState({ kind }: { kind: string }) {
 }
 export function SectionTitle({
   label,
+  index,
   to,
   link,
 }: {
   label: string;
+  index?: string;
   to?: string;
   link?: string;
 }) {
   return (
     <div className="section-heading">
-      <h2>{label}</h2>
+      <h2>
+        {index && <span className="section-index">{index} /</span>}
+        {label}
+      </h2>
       {to && (
         <Link className="text-link" to={to}>
           {link}

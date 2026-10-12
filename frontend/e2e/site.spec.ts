@@ -7,7 +7,7 @@ test("home, tag filter, article, theme persistence, and route refresh", async ({
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto("/");
   await expect(
-    page.getByRole("heading", { name: "Hi, I’m Sardorbek." }),
+    page.getByRole("heading", { name: "Hello, I’m Sardorbek Husanov." }),
   ).toBeVisible();
   await expect(page.locator(".project-card")).toHaveCount(3);
   await expect(page.locator(".post-row")).toHaveCount(3);
@@ -120,7 +120,7 @@ test("empty and unavailable content states", async ({ page }) => {
 test("skip link and route focus preserve the viewport", async ({ page }) => {
   await page.goto("/");
   await expect(
-    page.getByRole("heading", { name: "Hi, I’m Sardorbek." }),
+    page.getByRole("heading", { name: "Hello, I’m Sardorbek Husanov." }),
   ).toBeVisible();
   expect(await page.evaluate(() => window.scrollY)).toBe(0);
   await page.keyboard.press("Tab");
@@ -134,4 +134,48 @@ test("skip link and route focus preserve the viewport", async ({ page }) => {
     page.getByRole("heading", { name: "Projects.", exact: true }),
   ).toBeVisible();
   expect(await page.evaluate(() => window.scrollY)).toBe(0);
+});
+
+test("project details are keyboard accessible and preserve project actions", async ({
+  page,
+}) => {
+  await page.route("**/api/v1/projects?*", async (route) => {
+    const response = await route.fetch();
+    const data = await response.json();
+    data.items[0] = {
+      ...data.items[0],
+      description:
+        "Technical detail used to verify the disclosure interaction.",
+      cover_image_url: "/covers/async.png",
+      github_url: "https://github.com/example/project",
+      live_url: "https://example.com/demo",
+    };
+    await route.fulfill({ response, json: data });
+  });
+  await page.setViewportSize({ width: 375, height: 900 });
+  await page.emulateMedia({ colorScheme: "dark", reducedMotion: "reduce" });
+  await page.goto("/projects");
+  const project = page.locator(".project-card").first();
+  const details = project.locator("details");
+  await expect(details).not.toHaveAttribute("open");
+  await details.locator("summary").focus();
+  await page.keyboard.press("Enter");
+  await expect(details).toHaveAttribute("open", "");
+  await expect(details.locator("p")).toBeVisible();
+  await expect(project.getByRole("link", { name: "GitHub" })).toHaveAttribute(
+    "href",
+    "https://github.com/example/project",
+  );
+  await expect(
+    project.getByRole("link", { name: "Live demo" }),
+  ).toHaveAttribute("href", "https://example.com/demo");
+  await expect(project.locator(".project-cover")).toBeVisible();
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+  expect(
+    await project.evaluate((el) => getComputedStyle(el).transitionDuration),
+  ).toBe("0s");
 });
