@@ -45,7 +45,9 @@ class VercelBlobStorage:
         except Exception as exc:
             # SDK/network errors may include request details. Expose neither those nor tokens.
             log.error("blob_write_failed", extra={"error_type": type(exc).__name__})
-            raise AppError("Image storage is temporarily unavailable. Try again later.", 503) from None
+            raise AppError(
+                "Image storage is temporarily unavailable. Try again later.", 503
+            ) from None
 
     async def delete(self, key: str) -> None:
         self._validate_key(key)
@@ -56,7 +58,9 @@ class VercelBlobStorage:
             self._urls.pop(key, None)
         except Exception as exc:
             log.error("blob_delete_failed", extra={"error_type": type(exc).__name__})
-            raise AppError("Image storage is temporarily unavailable. Try again later.", 503) from None
+            raise AppError(
+                "Image storage is temporarily unavailable. Try again later.", 503
+            ) from None
 
     def url(self, key: str) -> str:
         """Return the SDK URL after this storage instance successfully writes the key."""

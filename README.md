@@ -135,6 +135,54 @@ By default browser tests use installed Google Chrome. To use Playwright Chromium
 
 ## Production build and routing
 
+### Vercel deployment
+
+The repository root is a single Vercel FastAPI project. Its build command
+compiles `frontend/` and stages public assets for Vercel's CDN. FastAPI still
+serves page HTML, API routes, feeds, sitemap, and correct 404 responses. Import
+the GitHub repository into Vercel with the repository root as the Root Directory.
+
+Before deploying, attach a hosted PostgreSQL database and a public Vercel Blob
+store. Configure the following Vercel environment variables in the dashboard:
+
+| Name | Value |
+| --- | --- |
+| `APP_ENV` | `production` |
+| `DEBUG` | `false` |
+| `DATABASE_URL` | Hosted PostgreSQL connection string for asyncpg; use TLS and omit `channel_binding` |
+| `SECRET_KEY` | One persistent random value of at least 32 characters |
+| `FRONTEND_URL` | Exact HTTPS origin of the production site |
+| `PUBLIC_SITE_URL` | The same HTTPS origin |
+| `STORAGE_BACKEND` | `vercel_blob` |
+| `BLOB_READ_WRITE_TOKEN` | Set by the attached Vercel Blob store |
+| `MAX_IMAGE_UPLOAD_MB` | `4` |
+
+The build limits client uploads to 4 MiB by default on Vercel. Set
+`VITE_MAX_IMAGE_UPLOAD_MB` to the same value if changing the limit. Leave
+`VITE_API_URL` unset so requests use `/api/v1` on the same origin. Configure
+optional Telegram variables only if publishing to a Telegram channel.
+
+Apply Alembic migrations to the hosted database using a trusted environment
+that has its `DATABASE_URL` set. For a new database, initialize only the owner's
+real identity and then create the administrator interactively:
+
+```bash
+cd backend
+DEBUG=false uv run alembic upgrade head
+DEBUG=false uv run python -m app.scripts.init_profile --name "Sardorbek Husanov" --headline "Computer Science student"
+DEBUG=false uv run python -m app.scripts.create_admin
+```
+
+The profile initializer is safe to rerun and creates no sample projects,
+articles, or social links. Sign in at `/admin/login` to complete the profile and
+add content. Keep database credentials, Blob tokens, the secret key, and the
+admin password out of Git. The original `app.seed` module contains sample
+content and is not part of Vercel deployment.
+
+When backend dependencies change, refresh root `requirements.txt` with
+`python3 scripts/vercel_requirements.py` before pushing. The Vercel build uses
+the committed export and does not require `uv` on Vercel.
+
 Set a persistent, randomly generated `SECRET_KEY` of at least 32 characters in your production environment, along with `DATABASE_URL`. Production startup rejects missing/placeholder secrets, non-HTTPS origins, and debug mode. Build **before** starting FastAPI:
 
 ```bash

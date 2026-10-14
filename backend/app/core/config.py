@@ -1,3 +1,4 @@
+import os
 import secrets
 from functools import lru_cache
 from pathlib import Path
@@ -29,7 +30,12 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def validate_settings(self):
-        if self.storage_backend == "vercel_blob" and not self.blob_read_write_token.get_secret_value():
+        if os.environ.get("VERCEL") == "1" and self.storage_backend != "vercel_blob":
+            raise ValueError("Vercel deployment requires STORAGE_BACKEND=vercel_blob")
+        if (
+            self.storage_backend == "vercel_blob"
+            and not self.blob_read_write_token.get_secret_value()
+        ):
             raise ValueError("Vercel Blob storage requires BLOB_READ_WRITE_TOKEN")
         if self.public_site_url:
             self.site_url = self.public_site_url.rstrip("/")

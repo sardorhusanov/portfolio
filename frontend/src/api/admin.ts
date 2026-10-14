@@ -73,7 +73,9 @@ export const adminApi = {
   upload: (file: File, folder: "posts" | "projects" | "profile") => {
     const maxMb = Number(import.meta.env.VITE_MAX_IMAGE_UPLOAD_MB || 10);
     if (file.size > maxMb * 1024 * 1024) {
-      return Promise.reject(new AdminError(413, `Choose an image smaller than ${maxMb} MB.`));
+      return Promise.reject(
+        new AdminError(413, `Choose an image smaller than ${maxMb} MB.`),
+      );
     }
     const body = new FormData();
     body.append("file", file);

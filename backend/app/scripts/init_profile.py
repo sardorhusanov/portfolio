@@ -33,8 +33,11 @@ async def main(name: str, headline: str) -> None:
     try:
         async with SessionFactory() as session:
             created = await initialize_profile(session, name, headline)
-        print("Profile initialized. Add your content in admin." if created else
-              "Profile already exists; no changes were made.")
+        print(
+            "Profile initialized. Add your content in admin."
+            if created
+            else "Profile already exists; no changes were made."
+        )
     finally:
         await engine.dispose()
 
