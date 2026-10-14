@@ -149,7 +149,7 @@ store. Configure the following Vercel environment variables in the dashboard:
 | --- | --- |
 | `APP_ENV` | `production` |
 | `DEBUG` | `false` |
-| `DATABASE_URL` | Hosted PostgreSQL connection string for asyncpg; use TLS and omit `channel_binding` |
+| `DATABASE_URL` | Hosted PostgreSQL connection string with TLS (Neon's integration URL works directly) |
 | `SECRET_KEY` | One persistent random value of at least 32 characters |
 | `FRONTEND_URL` | Exact HTTPS origin of the production site |
 | `PUBLIC_SITE_URL` | The same HTTPS origin |

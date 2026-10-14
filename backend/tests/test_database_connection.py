@@ -12,6 +12,13 @@ def test_hosted_postgres_url_keeps_encoded_credentials_and_tls():
     assert "p@ss" not in str(url)
 
 
+def test_neon_url_keeps_tls_without_unsupported_libpq_option():
+    url = database_url(
+        "postgresql://owner:secret@db.example/portfolio?sslmode=require&channel_binding=require"
+    )
+    assert url.query == {"ssl": "require"}
+
+
 def test_unsupported_driver_and_channel_binding_fail_without_credentials():
     for value in [
         "mysql://owner:secret@db.example/portfolio",

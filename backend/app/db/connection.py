@@ -16,10 +16,15 @@ def database_url(value: str) -> URL:
         raise ValueError("DATABASE_URL must use PostgreSQL with asyncpg.")
     query = dict(url.query)
     if "channel_binding" in query:
-        raise ValueError(
-            "asyncpg does not accept channel_binding in DATABASE_URL. "
-            "Use the provider's asyncpg connection URL with ssl=require or ssl=verify-full."
-        )
+        # Neon includes this libpq-only option in its integration URL. asyncpg
+        # cannot enforce it, so retain mandatory TLS and remove the option.
+        binding = query.pop("channel_binding")
+        if binding != "require" or query.get("sslmode", query.get("ssl")) not in {
+            "require",
+            "verify-ca",
+            "verify-full",
+        }:
+            raise ValueError("channel_binding requires a supported TLS setting")
     if "sslmode" in query:
         query.setdefault("ssl", query.pop("sslmode"))
     return url.set(query=query)
