@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, Request, Response
 
 from app.api.admin_dependencies import Auth, CurrentAdmin, csrf_guard
 from app.core.config import get_settings
-from app.core.rate_limit import limiter
+from app.core.rate_limit import check_rate_limit
 from app.schemas.auth import AdminOut, AuthOut, LoginRequest
 
 router = APIRouter(prefix="/api/v1/admin/auth", tags=["Admin Authentication"])
@@ -26,8 +26,8 @@ def set_cookie(response: Response, value: str) -> None:
 
 @router.post("/login", response_model=AuthOut, dependencies=[Depends(csrf_guard)])
 async def login(body: LoginRequest, request: Request, response: Response, service: Auth) -> AuthOut:
-    limiter.check("login-global", 30)
-    limiter.check("login:" + (request.client.host if request.client else "unknown"), 8)
+    await check_rate_limit("login-global", 30)
+    await check_rate_limit("login:" + (request.client.host if request.client else "unknown"), 8)
     admin, access, refresh = await service.login(str(body.email), body.password)
     set_cookie(response, refresh)
     return AuthOut(admin=AdminOut.model_validate(admin), access_token=access)

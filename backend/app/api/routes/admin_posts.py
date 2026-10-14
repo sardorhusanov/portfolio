@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, Query, Response
 
 from app.api.admin_dependencies import get_admin
 from app.api.dependencies import Session
-from app.core.rate_limit import limiter
+from app.core.rate_limit import check_rate_limit
 from app.integrations.telegram.service import TelegramSyncService
 from app.repositories.admin import AdminRepository
 from app.schemas.admin import Confirmation, PostAdmin, PostCreate, PostUpdate, RevisionInput
@@ -73,13 +73,13 @@ async def delete(post_id: UUID, body: Confirmation, service: Service):
 
 @router.post("/{post_id}/telegram/sync", response_model=PostAdmin)
 async def sync(post_id: UUID, service: Service):
-    limiter.check("telegram-retry", 15)
+    await check_rate_limit("telegram-retry", 15)
     return PostAdmin.model_validate(await TelegramSyncService(service.repo).sync(post_id))
 
 
 @router.post("/{post_id}/telegram/recreate", response_model=PostAdmin)
 async def recreate(post_id: UUID, body: Confirmation, service: Service):
-    limiter.check("telegram-recreate", 5)
+    await check_rate_limit("telegram-recreate", 5)
     return PostAdmin.model_validate(
         await TelegramSyncService(service.repo).sync(post_id, recreate=True)
     )

@@ -15,7 +15,7 @@ from sqlalchemy import (
     Table,
     Text,
 )
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base, Identity, Timestamps
@@ -160,3 +160,10 @@ class Upload(Identity, Base):
     size: Mapped[int] = mapped_column(Integer)
     width: Mapped[int] = mapped_column(Integer)
     height: Mapped[int] = mapped_column(Integer)
+
+
+class RateLimitBucket(Base):
+    __tablename__ = "rate_limit_buckets"
+    key: Mapped[str] = mapped_column(String(200), primary_key=True)
+    events: Mapped[list[datetime]] = mapped_column(ARRAY(DateTime(timezone=True)))
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)

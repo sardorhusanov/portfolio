@@ -1,0 +1,22 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "fastapi",
+  "buildCommand": "python scripts/vercel_build.py",
+  "functions": {
+    "index.py": {
+      "maxDuration": 60,
+      "excludeFiles": "{frontend/src/**,frontend/e2e/**,frontend/scripts/**,backend/tests/**,backend/alembic/**,**/.env,**/.env.*,**/.pytest_cache/**,**/.ruff_cache/**,**/test-results/**,**/playwright-report/**,uploads/**,backend/uploads/**}"
+    }
+  },
+  "headers": [
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    }
+  ]
+}

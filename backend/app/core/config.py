@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Literal
 from urllib.parse import urlparse
 
-from pydantic import Field, model_validator
+from pydantic import Field, SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -23,10 +23,14 @@ class Settings(BaseSettings):
     telegram_channel_id: str = ""
     telegram_channel_url: str = ""
     upload_dir: Path = Path("uploads")
+    storage_backend: Literal["local", "vercel_blob"] = "local"
+    blob_read_write_token: SecretStr = SecretStr("")
     max_image_upload_mb: int = Field(default=10, ge=1, le=25)
 
     @model_validator(mode="after")
     def validate_settings(self):
+        if self.storage_backend == "vercel_blob" and not self.blob_read_write_token.get_secret_value():
+            raise ValueError("Vercel Blob storage requires BLOB_READ_WRITE_TOKEN")
         if self.public_site_url:
             self.site_url = self.public_site_url.rstrip("/")
         for value in [self.frontend_url, self.site_url]:

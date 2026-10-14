@@ -14,6 +14,7 @@ from starlette.concurrency import run_in_threadpool
 from app.core.config import get_settings
 from app.core.errors import AppError
 from app.db.models import Post, Profile, Project, Upload
+from app.services.blob_storage import VercelBlobStorage
 
 Image.MAX_IMAGE_PIXELS = 32_000_000
 log = logging.getLogger(__name__)
@@ -82,7 +83,11 @@ def optimize(data: bytes, declared: str) -> tuple[bytes, bytes, int, int]:
 class StorageService:
     def __init__(self, session: AsyncSession, storage: Storage | None = None):
         self.session = session
-        self.storage = storage or LocalStorage()
+        self.storage = storage or (
+            VercelBlobStorage()
+            if get_settings().storage_backend == "vercel_blob"
+            else LocalStorage()
+        )
 
     async def upload(self, file: UploadFile, folder: str) -> Upload:
         types = {"image/jpeg": {".jpg", ".jpeg"}, "image/png": {".png"}, "image/webp": {".webp"}}
@@ -97,8 +102,8 @@ class StorageService:
         webp, jpeg, width, height = await run_in_threadpool(optimize, data, file.content_type)
         stem = f"{folder}/{uuid4().hex}"
         key = stem + ".webp"
-        await self.storage.write(key, webp)
         try:
+            await self.storage.write(key, webp)
             await self.storage.write(stem + ".jpg", jpeg)
             upload = Upload(
                 storage_key=key,
@@ -113,8 +118,12 @@ class StorageService:
             await self.session.commit()
         except Exception:
             await self.session.rollback()
-            await self.storage.delete(key)
-            await self.storage.delete(stem + ".jpg")
+            for cleanup_key in (key, stem + ".jpg"):
+                try:
+                    await self.storage.delete(cleanup_key)
+                except Exception as exc:
+                    # Attempt both variants and preserve the original upload/DB error.
+                    log.warning("image_cleanup_failed", extra={"error_type": type(exc).__name__})
             raise
         log.info("image_upload_success", extra={"upload_id": str(upload.id)})
         return upload

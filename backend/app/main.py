@@ -76,6 +76,7 @@ async def health() -> dict[str, str]:
 # The public API and feeds take priority over the SPA fallback.
 if (DIST / "assets").exists():
     app.mount("/assets", StaticFiles(directory=DIST / "assets"), name="assets")
-settings.upload_dir.mkdir(parents=True, exist_ok=True)
-app.mount("/uploads", StaticFiles(directory=settings.upload_dir), name="uploads")
+if settings.storage_backend == "local":
+    settings.upload_dir.mkdir(parents=True, exist_ok=True)
+    app.mount("/uploads", StaticFiles(directory=settings.upload_dir), name="uploads")
 app.include_router(pages.router)

@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, File, Form, Response, UploadFile
 
 from app.api.admin_dependencies import get_admin
 from app.api.dependencies import Session
-from app.core.rate_limit import limiter
+from app.core.rate_limit import check_rate_limit
 from app.schemas.admin import UploadOut
 from app.services.storage import StorageService
 
@@ -20,7 +20,7 @@ async def upload(
     file: UploadFile = File(),
     folder: Literal["posts", "projects", "profile"] = Form(default="posts"),
 ):
-    limiter.check("uploads", 30)
+    await check_rate_limit("uploads", 30)
     return UploadOut.model_validate(await StorageService(session).upload(file, folder))
 
 

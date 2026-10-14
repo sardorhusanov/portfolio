@@ -1,11 +1,11 @@
 import asyncio
 
-from sqlalchemy.ext.asyncio import create_async_engine
 
 from alembic import context
 from app.core.config import get_settings
 from app.db import models  # noqa: F401
 from app.db.base import Base
+from app.db.connection import create_database_engine, database_url
 
 
 def run_sync(connection):
@@ -15,7 +15,7 @@ def run_sync(connection):
 
 
 async def run_online():
-    engine = create_async_engine(get_settings().database_url)
+    engine = create_database_engine(get_settings().database_url, migrations=True)
     async with engine.connect() as connection:
         await connection.run_sync(run_sync)
     await engine.dispose()
@@ -23,7 +23,7 @@ async def run_online():
 
 if context.is_offline_mode():
     context.configure(
-        url=get_settings().database_url,
+        url=database_url(get_settings().database_url),
         target_metadata=Base.metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
